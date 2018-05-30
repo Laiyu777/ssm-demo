@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper SYSTEM "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="dao.UserDao">
+  <select id="selectOne" resultType="entity.User">
+  	select * from user where id=#{id}
+  </select>
+  <insert id="add">
+  	insert into user(id,name,password,age,email,sex) 
+  	values(#{id},#{name},#{password},#{age},#{email},#{sex})
+  </insert>
+  
+  <update id="updateIfShop">
+  	update user set shop_id=#{shop_id} where id=#{user_id}
+  </update>
+  
+  <select id="getShop" resultType="entity.Shop">
+  	select * from shop where user_id = #{id}
+  </select>
+  
+  <update id="update">
+  	update user set name=#{name},age=#{age},email=#{email},blance=#{blance},integral=#{integral}
+  	where id=#{id}
+  </update>
+  
+  <select id="getUserKeys" resultType="entity.vo.UserKey"> 
+  	select * from userkey where user_id=#{user_id} ORDER BY time DESC
+  </select>
+  
+</mapper>

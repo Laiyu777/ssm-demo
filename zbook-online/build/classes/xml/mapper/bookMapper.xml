@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper SYSTEM "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="dao.BookDao">
+  <insert id="addBook">
+  	insert into book(name,price,description,shop_id,stock,price2,`key`,kind)
+  	values(#{name},#{price},#{description},#{shop_id},#{stock},#{price},#{key},#{kind})
+  </insert>
+  
+  <select id="selectByShopID" resultType="entity.Book">
+  	select * from book where shop_id=#{shop_id} order by date desc
+  </select>
+  
+  <update id="updateBook">
+  	update book set
+  	 name=#{name},
+  	 description=#{description},
+  	 price=#{price},
+  	 stock=#{stock},
+  	 salecount=#{salecount},
+  	 `key`=#{key},
+  	 kind=#{kind} 
+	 where id=#{id}
+  </update>
+  
+  <delete id="deleteBook">
+  	delete from book where id=#{id}
+  </delete>
+  
+  <select id="selectAll" resultType="entity.Book">
+  	select * from book order by date desc
+  </select>
+  
+  <update id="discountPrice">
+  	update book set price2=#{price2},ifkill=1 where id=#{id}
+  </update>
+  
+  <select id="search" resultType="entity.Book">
+  	select * from book where name like concat('%',#{bookname},'%')
+  </select>
+  
+ 
+  
+</mapper>

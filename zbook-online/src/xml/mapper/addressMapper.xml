@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper SYSTEM "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="dao.AddressDao">
+  <!-- void add(Address address);
+	void delete(Integer id);
+	Address selectOne(Integer id);
+	List<Address> selectList(String user_id); -->  
+	<insert id="add">
+		insert into address(user_id,realname,addressdetail,phone)
+		values (#{user_id},#{realname},#{addressdetail},#{phone})
+	</insert>
+	<delete id="delete">
+		delete from address where id=#{id}
+	</delete>
+	<select id="selectOne" resultType="entity.Address">
+		select * from address where id=#{id}
+	</select>
+	<select id="selectList" resultType="entity.Address">
+		select * from address where user_id=#{id}
+	</select>
+	<update id="update">
+		update address set
+		 realname=#{realname},addressdetail=#{addressdetail},phone=#{phone}
+		 where id=#{id}
+	</update>
+</mapper>
