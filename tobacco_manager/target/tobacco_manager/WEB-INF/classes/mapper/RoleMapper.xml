@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="dao.RoleDao">
+    <!--数据库与实体的映射-->
+    <resultMap id="roleMap" type="entity.Role">
+        <id property="roleId" column="role_id"/>
+        <result property="roleName" column="role_name"/>
+    </resultMap>
+
+    <select id="getById" resultMap="roleMap">
+        select * from `role` where role_id = #{id}
+    </select>
+</mapper>

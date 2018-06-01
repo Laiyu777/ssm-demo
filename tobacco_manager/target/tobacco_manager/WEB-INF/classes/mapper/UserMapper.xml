@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="dao.UserDao">
+    <!--数据库与实体的映射-->
+    <resultMap id="userMap" type="entity.User">
+        <id property="username" column="username"/>
+        <result property="password" column="password"/>
+        <result property="realName" column="real_name"/>
+        <result property="createTime" column="create_time"/>
+        <result property="shopAddress" column="shop_address"/>
+        <result property="phone" column="phone"/>
+        <result property="cardNumber" column="card_number"/>
+        <result property="code" column="code"/>
+
+        <association property="role" select="dao.RoleDao.getById" column="role_id"/>
+        <association property="orders" select="dao.OrderDao.getByUsername" column="username"/>
+        <association property="situations" select="dao.SituationDao.getSituationsByUsername" column="username"/>
+    </resultMap>
+
+    <resultMap id="LoginMap" type="entity.LoginLog">
+        <result property="loginTime" column="logintime"/>
+        <result property="username" column="username"/>
+        <result property="result" column="result"/>
+        <result property="ipAddress" column="ip"/>
+    </resultMap>
+
+    <!--获取一个实体用户-->
+    <select id="getUserByUsername" resultMap="userMap" parameterType="string">
+      select * from `user` WHERE username=#{username}
+    </select>
+
+    <update id="updateOne">
+        UPDATE `user` set
+        <if test="password !=null and password !=''">
+            password=#{password},
+        </if>
+
+        real_name=#{realName},shop_address=#{shopAddress},card_number=#{cardNumber},phone=#{phone}
+        WHERE username=#{username}
+    </update>
+
+    <select id="getUsersNotIncludeAdmin" resultMap="userMap">
+        SELECT * FROM `user` WHERE role_id <![CDATA[<>]]> 0 ORDER by create_time desc
+    </select>
+
+    <!--添加零售商-->
+    <insert id="addOne" parameterType="entity.User">
+        INSERT INTO `user` (username,password,real_name,shop_address,phone,card_number,code,role_id)
+        VALUES (#{username},#{password},#{realName},#{shopAddress},#{phone},#{cardNumber},#{code},#{role.roleId})
+    </insert>
+
+
+
+    <!--插入一条登录日志-->
+    <insert id="addLoginLog" parameterType="entity.LoginLog">
+        INSERT INTO login_log (ip,username,result)values(#{ipAddress},#{username},#{result});
+    </insert>
+
+    <select id="getLoinLogs" resultMap="LoginMap">
+        SELECT * from login_log WHERE username=#{username} ORDER BY logintime DESC
+    </select>
+</mapper>

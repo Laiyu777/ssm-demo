@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="dao.MessageDao">
+    <resultMap id="messageMap" type="entity.Message">
+        <id property="id" column="id"/>
+       <result property="from" column="from"/>
+        <result property="to" column="to"/>
+        <result property="date" column="date"/>
+        <result property="if_reply" column="ifReply"/>
+        <result property="adminIfRead" column="admin_if_read"/>
+        <result property="userIfRead" column="user_if_read"/>
+        <result property="content" column="content"/>
+        <result property="theme" column="theme"/>
+    </resultMap>
+
+    <select id="selectMessageByUsername" resultMap="messageMap">
+        SELECT * from msg WHERE `to`=#{username} ORDER BY `date` DESC
+    </select>
+
+    <insert id="sellerSendMessageToAdmin" parameterType="entity.Message">
+        INSERT INTO `msg` (`from`,`to`,`content`,`theme`)
+        VALUES (#{from},#{to},#{content},#{theme});
+    </insert>
+
+    <update id="updateOneKey">
+        UPDATE `msg` SET ${key} = #{value} WHERE id=#{id}
+    </update>
+</mapper>

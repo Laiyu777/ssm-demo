@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="dao.CartItemDao">
+    <!--数据库与实体的映射-->
+    <resultMap id="cartItemMap" type="entity.CartItem">
+        <result column="username" property="username"/>
+        <result column="count" property="count"/>
+        <collection property="good" select="dao.GoodsDao.getById" column="good_id"/>
+    </resultMap>
+
+    <select id="getCartByUsername" resultMap="cartItemMap">
+        SELECT * FROM `cart` WHERE username=#{username}
+    </select>
+
+    <insert id="addOne" parameterType="entity.CartItem">
+        INSERT INTO `cart`(username,`count`,good_id) VALUES(#{username},#{count},#{good.goodId})
+    </insert>
+
+    <delete id="deleteByUsernameAndGoodId">
+        DELETE FROM `cart` WHERE username=#{username} and good_id=#{goodId}
+    </delete>
+
+    <update id="updateOne" parameterType="entity.CartItem">
+        UPDATE `cart` set `count`=#{count} WHERE username=#{username} and `good_id`=#{good.goodId}
+    </update>
+
+</mapper>

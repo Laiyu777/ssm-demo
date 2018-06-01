@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="dao.GoodsDao">
+    <!--数据库与实体的映射-->
+    <resultMap id="goodsMap" type="entity.Good">
+        <id column="good_id" property="goodId"></id>
+        <result column="good_name" property="goodName"/>
+        <result column="stock" property="stock"/>
+        <result column="max_price" property="maxPrice"/>
+        <result column="min_price" property="minPrice"/>
+        <result column="create_time" property="createTime"/>
+        <result column="description" property="description"/>
+        <collection  property="costList" select="getGoodsCost" column="good_id"/>
+    </resultMap>
+
+
+
+   <insert id="addOne" parameterType="entity.Good" useGeneratedKeys="true" keyProperty="goodId">
+       INSERT INTO `goods` (good_name,stock,max_price,min_price,description) VALUES
+       (#{goodName},#{stock},#{maxPrice},#{minPrice},#{description})
+   </insert>
+
+    <select id="goodsByPage" resultMap="goodsMap">
+        SELECT * from `goods` WHERE 1=1
+            <if test="keyword!=null and keyword!=''">
+                and good_name like concat('%',#{keyword},'%')
+            </if>
+            <choose>
+                <when test="orderName!='' and orderName!=null and orderName!='cost'">
+                    ORDER BY ${orderName} ${order}
+                </when>
+                <otherwise>
+                  ORDER BY create_time DESC
+                </otherwise>
+            </choose>
+    </select>
+
+    <select id="getById" resultMap="goodsMap">
+        SELECT * from `goods`  WHERE good_id=#{id}
+    </select>
+
+    <update id="updateOne">
+        UPDATE `goods` set description=#{description},good_name=#{goodName},stock=#{stock},max_price=#{maxPrice},min_price=#{minPrice}
+         WHERE good_id=#{goodId}
+    </update>
+
+    <delete id="deleteOne">
+        DELETE FROM `goods` WHERE good_id=#{id}
+    </delete>
+
+</mapper>

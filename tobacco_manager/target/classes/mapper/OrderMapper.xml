@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="dao.OrderDao">
+    <!--数据库与实体的映射-->
+    <resultMap id="orderMap" type="entity.Order">
+        <id property="orderId" column="order_id"/>
+        <result property="username" column="user_name"/>
+        <result property="createTime" column="create_time"/>
+        <result property="status" column="status"/>
+        <result property="notes" column="notes"/>
+        <association property="orderDetails" select="dao.OrderDao.getOrdetail" column="order_id"/>
+        <association property="user" select="dao.UserDao.getUserByUsername" column="user_name"/>
+    </resultMap>
+
+    <resultMap id="detailMap" type="entity.OrderDetail">
+        <result property="orderId" column="order_id"/>
+        <result property="count" column="count"/>
+        <association property="good" select="dao.GoodsDao.getById" column="good_id"/>
+    </resultMap>
+
+    <select id="getById" resultMap="orderMap">
+        select * from `order` where order_id = #{id}
+    </select>
+
+    <!--用户查询自己的订单-->
+    <select id="getByUsername" resultMap="orderMap">
+        select * from `order` WHERE user_name=#{username} ORDER BY create_time DESC
+    </select>
+
+    <select id="getOrdetail" resultMap="detailMap">
+        SELECT * FROM `order_detail` WHERE order_id = #{id}
+    </select>
+
+    <insert id="addOne" parameterType="entity.Order" useGeneratedKeys="true" keyProperty="orderId">
+        INSERT INTO `order` (`user_name`) VALUES (#{username})
+    </insert>
+
+    <insert id="addOderDetail" parameterType="entity.OrderDetail">
+        INSERT INTO `order_detail` (`good_id`,`count`,`order_id`) VALUES (#{good.goodId},#{count},#{orderId})
+    </insert>
+
+    <!--管理员和用户查询所有订单-->
+    <select id="getAllOrders" resultMap="orderMap">
+        select * from `order` WHERE 1=1
+        <!--关键字查询-->
+        <if test="userName!=null and userName!=''">
+            AND user_name=#{userName}
+        </if>
+        <!--关键字查询-->
+        <if test="keyword != '' and keyword!=null">
+            AND order_id in(SELECT order_id from order_detail WHERE good_id in
+            (SELECT good_id from goods where good_name like concat('%',#{keyword},'%')))
+        </if>
+        <!--关键字查询-->
+        <if test="status!=null and status!=''">
+            AND status=#{status}
+        </if>
+        <if test="startDay!=null and startDay!=''">
+            AND create_time&gt;#{startDay} AND create_time&lt;#{endDay}
+        </if>
+         ORDER BY create_time DESC
+    </select>
+
+    <update id="updateOne" parameterType="entity.Order">
+        UPDATE `order` SET
+       <trim suffixOverrides=",">
+           <if test="status!=null">
+               status=#{status},
+           </if>
+           <if test="notes!=null">
+               notes=#{notes},
+           </if>
+       </trim>
+        WHERE order_id=#{orderId}
+    </update>
+
+
+</mapper>

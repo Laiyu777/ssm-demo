@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="dao.SituationDao">
+   <resultMap id="situationMap" type="entity.Situation">
+       <id column="situation_id" property="situationId"/>
+        <result column="username" property="username"/>
+       <result column="create_time" property="createTime"/>
+       <association property="situationDetails" select="dao.SituationDao.getSituationDetailById" column="situation_id"/>
+   </resultMap>
+
+    <resultMap id="situationDetailMap" type="entity.SituationDetail">
+        <result column="situation_id" property="situationId"/>
+        <result column="good_name" property="goodName"></result>
+        <result column="count" property="sellCount"/>
+        <result column="price" property="sellPrice"/>
+        <result column="cost" property="sellCost"/>
+    </resultMap>
+
+    
+    <select id="getSituationsByUsername" resultMap="situationMap">
+        select * from `sell_situation` WHERE username=#{username}
+    </select>
+
+    <select id="getSituationDetailById" resultMap="situationDetailMap">
+        SELECT * FROM  `situation_detail` WHERE situation_id=#{id}
+    </select>
+
+    <!--addSellSituation-->
+    <insert id="addSellSituation" parameterType="entity.Situation" useGeneratedKeys="true" keyProperty="situationId">
+        INSERT INTO sell_situation  (username) VALUES (#{username})
+    </insert>
+
+    <!-- int addSellSituation(List<SituationDetail> list);-->
+    <insert id="addSellSituationDetail">
+        INSERT INTO situation_detail (situation_id,good_name,`count`,price,cost) VALUES
+        <foreach collection="list" item="detail" separator=",">
+            (#{detail.situationId},#{detail.goodName},#{detail.sellCount},#{detail.sellPrice},#{detail.sellCost})
+        </foreach>
+    </insert>
+
+    <!--void updateLastTime(Timestamp now);-->
+    <update id="updateLastTime">
+        UPDATE `sell_situation` set create_time=#{createTime} where situation_id=#{id}
+    </update>
+
+    <!--void updateSituationDetail(SituationDetail situationDetail);-->
+    <update id="updateSituationDetail" parameterType="entity.SituationDetail">
+        UPDATE `situation_detail` set
+        good_name=#{goodName},
+        `count`=#{sellCount},
+        `cost`=#{sellCost},
+        `price`=#{sellPrice}
+        WHERE `situation_id`=#{situationId} AND `good_name`=#{goodName}
+    </update>
+
+</mapper>
