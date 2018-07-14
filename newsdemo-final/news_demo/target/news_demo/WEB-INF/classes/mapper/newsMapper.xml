@@ -1,0 +1,147 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="Dao.NewsDao">
+
+    <resultMap id="newFileMap" type="Entity.NewFile">
+        <result property="fileName" column="file_name"/>
+        <result property="newId" column="news_id"/>
+    </resultMap>
+
+    <resultMap id="newsMap" type="Entity.New">
+        <result property="id" column="id"/>
+        <result property="title" column="title"/>
+        <result property="content" column="content"/>
+        <result property="checkAuth" column="check_auth"/>
+        <result property="createTime" column="create_time"/>
+        <result property="status" column="status"/>
+        <result property="lastTime" column="last_time"/>
+        <association property="submenu" column="submenu_id" select="Dao.MenuDao.getSubmenuById"/>
+        <association property="menuId" column="submenu_id" select="Dao.MenuDao.getMenuIdBySubmenuId"/>
+        <association property="menuName" column="submenu_id" select="Dao.MenuDao.getMenuNameBySubmenuId"/>
+        <association property="user" column="username" select="Dao.UserDao.getUserByUsername"/>
+        <association property="newFileList" column="id" select="Dao.NewsDao.getFileNamesByNewsId"/>
+    </resultMap>
+
+    <insert id="insertOneRecord" parameterType="Entity.New">
+        INSERT INTO `news`(id,title,content,check_auth,submenu_id,username,create_time,menu_id,status,last_time)
+        VALUES(#{id},#{title},#{content},#{checkAuth},#{submenu.submenuId},#{user.username},#{createTime},#{menuId},#{status},#{lastTime})
+    </insert>
+
+    <select id="getNewsById" resultMap="newsMap">
+        SELECT * FROM `news` WHERE id = #{id}
+    </select>
+
+    <insert id="insertNewsFiles">
+        INSERT INTO `news_files`(news_id,file_name) VALUES
+        <foreach collection="list" index="index" separator="," item="newsfile">
+            (#{newsfile.newId},#{newsfile.fileName})
+        </foreach>
+    </insert>
+    
+    <select id="getFileNamesByNewsId" resultMap="newFileMap">
+        select * from `news_files` WHERE news_id = #{id}
+    </select>
+
+    <select id="getAllNews" resultMap="newsMap">
+        select * from `news` ORDER BY last_time DESC
+    </select>
+
+    <select id="getNewsByUsername" resultMap="newsMap">
+        select * from `news` WHERE username = #{username} ORDER BY last_time DESC
+    </select>
+
+    <update id="modifyNews" parameterType="Entity.New">
+          update `news` set
+          title=#{title},
+          content = #{content},
+          check_auth = #{checkAuth},
+          submenu_id = #{submenu.submenuId},
+          menu_id = #{menuId},
+          last_time = #{lastTime}
+          WHERE id = #{id}
+    </update>
+
+    <!--获取最新发布的十条新闻-->
+    <select id="getLastNewList" resultMap="newsMap">
+        SELECT * from news where status = 1 and submenu_id <![CDATA[<>]]> 18 ORDER BY last_time DESC LIMIT 10
+    </select>
+
+    <!--根据主菜单名字来查找新闻-->
+    <select id="getNewsByMenuName" resultMap="newsMap">
+        SELECT * FROM news WHERE menu_id in (SELECT menu_id from menu WHERE menu_name = #{menuName}) ORDER BY last_time DESC
+    </select>
+    <!--根据子菜单名字来查找新闻-->
+    <select id="getNewsBySubmenuName" resultMap="newsMap">
+        SELECT * FROM news WHERE submenu_id in (SELECT submenu_id from submenu WHERE submenu_name = #{submenuName}) ORDER BY last_time DESC
+    </select>
+
+    <!--管理员根据新闻标题或者新闻内容的关键字检索新闻-->
+    <select id="getNewsByNewsKeyword" resultMap="newsMap">
+        SELECT * FROM `news` where (title like concat('%',#{keyword},'%') or content like concat('%',#{keyword},'%'))
+          <if test="username!=''">
+              and username = #{username}
+          </if>
+         ORDER BY last_time DESC
+    </select>
+
+    <!--根据新闻状态显示新闻-->
+    <select id="getNewsByStatus" resultMap="newsMap">
+        select * from `news` WHERE status = #{status}
+        <if test="username!=''">
+            and username = #{username}
+        </if>
+        ORDER BY last_time DESC
+    </select>
+
+    <!--高级检索-->
+    <select id="getNewsByConditions" resultMap="newsMap">
+      SELECT * FROM `news`
+      <where>
+          <if test="userKeyword!=''">
+              and username in (SELECT username from `user` where real_name like concat('%',#{userKeyword},'%'))
+          </if>
+          <if test="newsKeyword!=''">
+              and (title like concat('%',#{newsKeyword},'%') or content like concat('%',#{newsKeyword},'%'))
+          </if>
+
+          <if test="fromDate!='' and toDate!=''">
+              and last_time BETWEEN #{fromDate} and #{toDate}
+
+          </if>
+          <if test="fromDate!='' and toDate==''">
+              and last_time &gt; #{fromDate}
+          </if>
+          <if test="toDate=='' and toDate!=''">
+              and last_time &lt; #{toDate}
+          </if>
+
+          <if test="menuId!=''">
+              and menu_id = #{menuId}
+          </if>
+          <if test="submenuId!=''">
+              and submenu_id = #{submenuId}
+          </if>
+          <if test="status!=''">
+              and status = #{status}
+          </if>
+      </where>
+        ORDER BY last_time DESC
+    </select>
+
+    <select id="getAllNewsInIndex" resultMap="newsMap">
+        SELECT * from news where status = 1
+         <if test="menuId!='' and menuId!=null">
+             and menu_id = #{menuId}
+         </if>
+        <if test="submenuId!='' and submenuId!=null">
+            and submenu_id = #{submenuId}
+        </if>
+         ORDER BY last_time DESC
+    </select>
+
+
+
+</mapper>

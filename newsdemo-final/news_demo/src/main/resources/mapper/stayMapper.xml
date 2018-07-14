@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="Dao.StayDao">
+
+    <!-- 部门员工的映射-->
+    <resultMap id="empMap" type="Entity.Employee">
+        <result property="id" column="id"></result>
+        <result property="name" column="name"></result>
+        <result property="tel" column="tel"></result>
+        <result property="dorm" column="dorm"></result>
+        <result property="deptName" column="dept_name"></result>
+    </resultMap>
+    <!--留守信息的映射-->
+    <resultMap id="stayMap" type="Entity.StayInfo">
+        <result property="id" column="id"></result>
+        <result property="content1" column="content1"></result>
+        <result property="content2" column="content2"></result>
+        <result property="date" column="date"></result>
+        <result property="deptName" column="dept_name"></result>
+    </resultMap>
+
+
+    <!--插入一个部门员工，dept_name设置成和插入人一样的-->
+    <insert id="addEmp" parameterType="Entity.Employee">
+        INSERT INTO `emp`(`name`,tel,dorm,dept_name) VALUES (#{name},#{tel},#{dorm},#{deptName})
+    </insert>
+
+    <!--根据部门选取员工-->
+    <select id="getEmpByDeptName" resultMap="empMap">
+        select * from emp where dept_name = #{deptName} order by CONVERT(`name` USING gbk)
+    </select>
+
+    <!--插入一条留守信息-->
+    <insert id="addStayInfo" parameterType="Entity.StayInfo">
+        insert into stay(id,content1,content2,dept_name,`date`)
+         values(#{id},#{content1},#{content2},#{deptName},#{date})
+    </insert>
+
+
+    <!--根据id的集合选择员工-->
+    <select id="getEmpsByIds" resultMap="empMap">
+        SELECT * from emp WHERE id in (
+        <foreach collection="array" separator="," item="id">
+            #{id}
+        </foreach>
+        )
+    </select>
+
+    <!-- 返回部门的留守记录-->
+    <select id="getStayInfosBydeptName" resultMap="stayMap">
+        select * from stay WHERE dept_name = #{deptName} ORDER BY `date` desc
+    </select>
+
+    <!--根据年份月份选择留守记录-->
+    <select id="getStayInfosByConditions" resultMap="stayMap" parameterType="map">
+        select * from stay
+          <where>
+              <if test="deptName!=null and deptName!=''">
+                 and dept_name = #{deptName}
+              </if>
+              <if test="month!=null and month!=''">
+                  and `date` like concat('%',#{month},'%')
+              </if>
+          </where>
+          ORDER BY `date` asc
+    </select>
+
+    <!--修改一条留守记录-->
+    <update id="updateStayInfo" parameterType="Entity.StayInfo">
+      UPDATE stay set content1=#{content1},content2=#{content2},`date`=#{date} WHERE id=#{id}
+    </update>
+    <!--删除一条留守记录-->
+    <delete id="delStayInfo">
+        DELETE from stay WHERE id=#{id}
+    </delete>
+    <!--更新员工信息-->
+    <update id="updateEmp" parameterType="Entity.Employee">
+        update emp set `name`=#{name},dorm=#{dorm},tel=#{tel} WHERE id=#{id}
+    </update>
+
+    <!--查询一周的数据-->
+    <select id="getByWeek" resultMap="stayMap">
+        SELECT * FROM stay
+         WHERE YEARWEEK(date_format(`date`,'%Y-%m-%d')) = YEARWEEK(now())
+          <if test="offset!=null and offset !=''">
+              + #{offset}
+          </if>
+          ORDER BY `date` asc
+    </select>
+
+    <!--获取当月的留守数据-->
+    <select id="getByMonth" resultMap="stayMap">
+        SELECT * FROM stay WHERE PERIOD_DIFF( date_format( now( ) , '%Y%m' ) , date_format( date, '%Y%m' ) ) =
+        <choose>
+            <when test="offsetMonth!=null and offsetMonth!=''">
+                #{offsetMonth}
+            </when>
+            <otherwise>
+                0
+            </otherwise>
+        </choose>
+        ORDER BY `date` asc
+    </select>
+</mapper>
